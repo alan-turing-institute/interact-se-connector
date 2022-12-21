@@ -1,4 +1,9 @@
-from interact_se_connector.scrapper import Scrapper, strip_formatting, strip_internal_anchors, get_keywords_from_headings
+from interact_se_connector.scrapper import (
+    Scrapper,
+    strip_formatting,
+    strip_internal_anchors,
+    get_keywords_from_headings,
+)
 from pathlib import Path
 from bs4 import BeautifulSoup
 from icecream import ic
@@ -8,9 +13,12 @@ from pytest import mark
 @mark.skip()
 def test_do_walk():
 
-    test_dir = Path("/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs")
+    test_dir = Path(
+        "/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs")
 
-    test_dir = Path("/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs/communications/")
+    test_dir = Path(
+        "/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs/communications/"
+    )
 
     allowed_extensions = [".html"]
 
@@ -18,6 +26,7 @@ def test_do_walk():
     my_scrapper.do_walk(test_dir, allowed_extensions)
 
     assert False
+
 
 def test_strip_formatting():
     input_fpath = Path(__file__, "..", "hugo_input.html").resolve()
@@ -30,7 +39,7 @@ def test_strip_formatting():
 
     with open(expected_fpath) as expect_file:
         expected_body = expect_file.read()
-        
+
     soup = strip_internal_anchors(soup, "anchor")
     actual_body = strip_formatting(soup)
 
@@ -58,12 +67,11 @@ def test_strip_internal_anchors():
     soup = BeautifulSoup(input_str, features="html5lib")
     actual_body = strip_internal_anchors(soup, "headerlink")
 
-    expected_soup  = BeautifulSoup(expected_str, features="html5lib")
+    expected_soup = BeautifulSoup(expected_str, features="html5lib")
 
     ic(actual_body)
     ic(expected_soup)
     assert str(actual_body) == str(expected_soup)
-
 
 
 def test_get_keywords_from_headings():
@@ -77,7 +85,17 @@ def test_get_keywords_from_headings():
     with open(fname) as fp:
         soup = BeautifulSoup(fp, features="html5lib")
 
-    expected = {'#', 'Lightning', 'Talks', 'Talk', 'Format', 'Sign', 'Up', 'Previous', 'Talks'}
+    expected = {
+        "#",
+        "Lightning",
+        "Talks",
+        "Talk",
+        "Format",
+        "Sign",
+        "Up",
+        "Previous",
+        "Talks",
+    }
     actual = get_keywords_from_headings(soup)
 
     assert expected == actual

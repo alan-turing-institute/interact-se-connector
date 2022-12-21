@@ -1,10 +1,10 @@
-
 from pathlib import Path
 import os
 from icecream import ic
 from typing import List, Tuple, MutableSet
 from bs4 import BeautifulSoup, Tag
 import re
+from abc import ABC, abstractmethod
 
 """
 $templateJSON = "{
@@ -24,12 +24,14 @@ Striping out common words
 https://stackoverflow.com/questions/9953619/technique-to-remove-common-wordsand-their-plural-versions-from-a-string
 """
 
+
 def strip_internal_anchors(soup: Tag, class_name: str) -> Tag:
 
-    for anchor_tags in soup.find_all("a", attrs={"class":class_name}):
+    for anchor_tags in soup.find_all("a", attrs={"class": class_name}):
         anchor_tags.decompose()
 
     return soup
+
 
 def _do_strip_formatting(soup: Tag) -> List[str]:
     """
@@ -43,7 +45,7 @@ def _do_strip_formatting(soup: Tag) -> List[str]:
         # This element is text. The process here is to:
         # - Split the text into separate lines.
         # - If this results in an empty line, than add a newline char back in.
-        # - For all other lines, strip out most of the white space, but ensure that there is exactly one space at the end. 
+        # - For all other lines, strip out most of the white space, but ensure that there is exactly one space at the end.
         return [f"{s.strip()} " if s else "\n" for s in soup.string.splitlines()]
 
     result_body = []
@@ -54,8 +56,9 @@ def _do_strip_formatting(soup: Tag) -> List[str]:
 
     return result_body
 
-def strip_formatting(soup: Tag) -> List[str]:
-    """"
+
+def strip_formatting(soup: Tag) -> str:
+    """ "
     Recursively search the html extracting the contents as plain text.
     The real work of this is performed by the function `_do_strip_formatting`.
 
@@ -72,66 +75,83 @@ def get_keywords_from_headings(soup: Tag) -> MutableSet[str]:
     if headers:
         for kws in headers:
             for kw in kws.stripped_strings:
-               result_keywords.update(kw.split())
+                result_keywords.update(kw.split())
 
     return result_keywords
 
 
-class Scrapper:
-    def __init_():
-        pass
+class Scrapper(ABC):
+    def __init__(self, root_dir: Path, allowed_extensions: List[str]):
+        self.root_dir = root_dir
+        self.allowed_extensions = allowed_extensions
 
-
-    def do_walk(self, root_dir: Path, allowed_extensions: List[str]):
-        for root, dirs, files in os.walk(root_dir, topdown=False):
-            # ic(root)
-            # ic(type(rootfd))
+    def do_walk(self):
+        for root, _, files in os.walk(self.root_dir, topdown=False):
             for file_name in files:
                 ic(file_name)
                 fname = Path(root, file_name).resolve()
-                # ic(fname.exists())
 
-                if fname.suffix in allowed_extensions:
-                    self.read_file(fname)
-            # for dir_name in dirs:
-            #     ic(type(dir_name))
-                
+                if fname.suffix in self.allowed_extensions:
+                    self._scrape_file(fname)
 
-    def read_file(self, fname: Path):
+    def _scrape_file(self, fname: Path) -> dict:
         with open(fname) as fp:
             soup = BeautifulSoup(fp, features="html5lib")
 
-            url = soup.find("meta", attrs={"property":"og:url"})
+            """
+            # Playing around assuming hugo
+            url = soup.find("meta", attrs={"property": "og:url"})
             url = url.attrs.get("content", None)
 
-            title = soup.find("meta", attrs={"property":"og:title"})
+            title = soup.find("meta", attrs={"property": "og:title"})
             title = title.attrs.get("content", None)
 
-            # <meta property="og:url" content="https://alan-turing-institute.github.io/REG-handbook/docs/communications/">
-
-            # body = soup.find_all("article", class="markdown")
-            body = soup.find("article", attrs={"class":"markdown"})
-            # body = "\n".join([text for text in body.stripped_strings])
-            # [u'I linked to', u'example.com']
-            # body = body.get_text(" ", strip=True)
-            # body = body.get_text()
+            body = soup.find("article", attrs={"class": "markdown"})
 
             ic(url)
             ic(title)
             ic(body)
             ic(type(body))
+            """
 
+            return {
+                "Url": self.get_url(soup),
+                "Id": "{id}soup",
+                "Title": self.get_title(soup),
+                "IsPublic": self.get_is_public(soup),
+                "Body": self.get_body(soup),
+                "summary": self.get_summary(soup),
+                "Author": self.get_author(soup),
+            }
 
+    @abstractmethod
+    def get_url(self, soup: Tag) -> str:
+        pass
 
-        # tag = soup.article
-        # # tag[]
+    @abstractmethod
+    def get_page_id(self, soup: Tag) -> str:
+        pass
 
-        # body = unicode(tag.string)
+    @abstractmethod
+    def get_body(self, soup: Tag) -> str:
+        pass
 
-        """
-        body =
-          - xpath = /html/body/main/div/article
-          - tag = article
-          - class = markdown
-        """
+    @abstractmethod
+    def get_keywords(self, soup: Tag) -> str:
+        pass
 
+    @abstractmethod
+    def get_title(self, soup: Tag) -> str:
+        pass
+
+    @abstractmethod
+    def get_summary(self, soup: Tag) -> str:
+        pass
+
+    @abstractmethod
+    def get_author(self, soup: Tag) -> str:
+        pass
+
+    @abstractmethod
+    def get_is_public(self, soup: Tag) -> str:
+        pass

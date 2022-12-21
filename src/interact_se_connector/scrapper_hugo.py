@@ -1,11 +1,12 @@
-from scrapper import (
-    Scrapper,
-    strip_formatting,
-    strip_internal_anchors,
-    get_keywords_from_headings,
-)
 from pathlib import Path
 from typing import List
+
+from scrapper import (
+    Scrapper,
+    get_keywords_from_headings,
+    strip_formatting,
+    strip_internal_anchors,
+)
 from bs4 import Tag
 
 

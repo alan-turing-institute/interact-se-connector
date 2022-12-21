@@ -1,20 +1,21 @@
-from interact_se_connector.scrapper import (
-    Scrapper,
-    strip_formatting,
-    strip_internal_anchors,
-    get_keywords_from_headings,
-)
 from pathlib import Path
+
 from bs4 import BeautifulSoup
 from icecream import ic
 from pytest import mark
+
+from interact_se_connector.scrapper import (
+    Scrapper,
+    get_keywords_from_headings,
+    strip_formatting,
+    strip_internal_anchors,
+)
 
 
 @mark.skip()
 def test_do_walk():
 
-    test_dir = Path(
-        "/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs")
+    test_dir = Path("/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs")
 
     test_dir = Path(
         "/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs/communications/"
@@ -47,7 +48,9 @@ def test_strip_formatting():
     print(actual_body)
     print()
 
-    assert actual_body == expected_body
+    # Strip the whitespace at either end rather than faff around
+    # stopping pre-commit from altering the example files
+    assert actual_body.strip() == expected_body.strip()
 
 
 def test_strip_internal_anchors():

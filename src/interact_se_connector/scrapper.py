@@ -1,10 +1,11 @@
-from pathlib import Path
 import os
-from icecream import ic
-from typing import List, Tuple, MutableSet
-from bs4 import BeautifulSoup, Tag
 import re
 from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import List, MutableSet, Tuple
+
+from bs4 import BeautifulSoup, Tag
+from icecream import ic
 
 """
 $templateJSON = "{

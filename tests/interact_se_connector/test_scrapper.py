@@ -5,26 +5,34 @@ from icecream import ic
 from pytest import mark
 
 from interact_se_connector.scrapper import (
-    Scrapper,
     get_keywords_from_headings,
     strip_formatting,
     strip_internal_anchors,
 )
 
+from interact_se_connector.scrapper_hugo import ScrapperHugo
+from interact_se_connector.scrapper_jupyterbook import ScrapperJupyerBook
 
-@mark.skip()
+# @mark.skip()
+
+
 def test_do_walk():
 
+    # Run Hugo example
     test_dir = Path("/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs")
-
-    test_dir = Path(
-        "/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs/communications/"
-    )
-
     allowed_extensions = [".html"]
+    hugo_scrapper = ScrapperHugo(test_dir, allowed_extensions)
+    result = hugo_scrapper.do_walk()
+    result.to_csv("test_hugo_output.csv")
 
-    my_scrapper = Scrapper()
-    my_scrapper.do_walk(test_dir, allowed_extensions)
+    # Run JupyterBook example
+    test_dir = Path(
+        "/Users/a.smith/code/knowledgemanagement/the-turing-way/book/website/_build/html"
+    )
+    allowed_extensions = [".html"]
+    jb_scrapper = ScrapperJupyerBook(test_dir, allowed_extensions)
+    result = jb_scrapper.do_walk()
+    result.to_csv("test_jupyter_output.csv")
 
     assert False
 

@@ -13,8 +13,8 @@ import re
 
 from icecream import ic
 
-class ScrapperJupyerBook(Scrapper):
 
+class ScrapperJupyterBook(Scrapper):
     def __init__(self, root_dir: Path, allowed_extensions: List[str]):
         self.author = ""
         self.is_public = True
@@ -26,8 +26,9 @@ class ScrapperJupyerBook(Scrapper):
         # Skip the "genindex.html" and search pages
         # <div class="genindex-jumpbox">
         # <div id="search-results">
-        skip_file = bool(body.find("div", attrs={"class":"genindex-jumpbox"})) \
-            or bool(body.find("div", attrs={"id":"search-results"}))
+        skip_file = bool(body.find("div", attrs={"class": "genindex-jumpbox"})) or bool(
+            body.find("div", attrs={"id": "search-results"})
+        )
         if skip_file:
             raise ParseSkipFile()
 
@@ -35,9 +36,9 @@ class ScrapperJupyerBook(Scrapper):
 
     def assert_suitable_generator(self, soup: Tag) -> bool:
         signature = soup.find(
-            "meta", attrs={"name":"generator", "content":re.compile("Docutils 0\.\d")}
+            "meta", attrs={"name": "generator", "content": re.compile("Docutils 0\.\d")}
         )
-        return bool(signature)        
+        return bool(signature)
 
     def get_url(self, soup: Tag) -> str:
         url = soup.find("link", attrs={"rel": "canonical"})
@@ -51,7 +52,7 @@ class ScrapperJupyerBook(Scrapper):
         pass
 
     def get_body(self, soup: Tag) -> str:
-        body = soup.find("main", attrs={"id": "main-content", "role":"main"})
+        body = soup.find("main", attrs={"id": "main-content", "role": "main"})
 
         # body = strip_internal_anchors(body, "anchor")
         return strip_formatting(body)
@@ -62,9 +63,9 @@ class ScrapperJupyerBook(Scrapper):
         return " ".join(get_keywords_from_headings(body))
 
     def get_title(self, soup: Tag) -> str:
-        # The least worst option to do this in a single line seems to be to get the title from the currently highlight entry in the 
+        # The least worst option to do this in a single line seems to be to get the title from the currently highlight entry in the
         # ```
-        # title = soup.find("a", attrs={"class": "current reference internal"})        
+        # title = soup.find("a", attrs={"class": "current reference internal"})
         # ```
         # However it feels cleaner to do a two stage search in this case.
         head = soup.find("head")

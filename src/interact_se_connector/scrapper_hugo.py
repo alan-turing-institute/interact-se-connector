@@ -1,30 +1,26 @@
 from pathlib import Path
 from typing import List
 
-from interact_se_connector.scrapper import (
-    Scrapper,
-    get_keywords_from_headings,
-    strip_formatting,
-    strip_internal_anchors,
-)
+import interact_se_connector.scrapper as scrapper
+
 from bs4 import Tag
 from icecream import ic
 import re
 
 
-class ScrapperHugo(Scrapper):
+class ScrapperHugo(scrapper.Scrapper):
     def __init__(self, root_dir: Path, allowed_extensions: List[str]):
         self.author = ""
         self.is_public = True
         super().__init__(root_dir, allowed_extensions)
 
     def pre_parse(self, soup: Tag) -> Tag:
-        body = strip_internal_anchors(soup, "anchor")
+        body = scrapper.strip_internal_anchors(soup, "anchor")
         return super().pre_parse(soup)
 
     def assert_suitable_generator(self, soup: Tag) -> bool:
         signature = soup.find(
-            "meta", attrs={"name":"generator", "content":re.compile("Hugo 0\.\d")}
+            "meta", attrs={"name": "generator", "content": re.compile("Hugo 0\.\d")}
         )
         return bool(signature)
 
@@ -38,12 +34,12 @@ class ScrapperHugo(Scrapper):
     def get_body(self, soup: Tag) -> str:
         body = soup.find("article", attrs={"class": "markdown"})
         # body = strip_internal_anchors(body, "anchor")
-        return strip_formatting(body)
+        return scrapper.strip_formatting(body)
 
     def get_keywords(self, soup: Tag) -> str:
         body = soup.find("article", attrs={"class": "markdown"})
         # body = strip_internal_anchors(body, "anchor")
-        return " ".join(get_keywords_from_headings(body))
+        return " ".join(scrapper.get_keywords_from_headings(body))
 
     def get_title(self, soup: Tag) -> str:
         title = soup.find("meta", attrs={"property": "og:title"})

@@ -8,23 +8,9 @@ from bs4 import BeautifulSoup, Tag
 from icecream import ic
 
 """
-$templateJSON = "{
-  ""Url"": ""file:" + $uncPath + "/{filepath}"",
-  ""Id"": ""{id}"",
-  ""Title"": ""{filename}"",
-  ""IsPublic"": ""true"",
-  ""Body"": ""{filename}"",
-  ""summary"": ""{filename}"",
-  ""Author"": ""{author}"",
-}"
-"""
-# ic.disable()
-
-"""
 Striping out common words
 https://stackoverflow.com/questions/9953619/technique-to-remove-common-wordsand-their-plural-versions-from-a-string
 """
-
 
 def strip_internal_anchors(soup: Tag, class_name: str) -> Tag:
 
@@ -87,6 +73,25 @@ def reject_redirect_files(soup: Tag) -> None:
         raise ParseSkipFile()
 
 
+# def find_suitable_scrapper(root_dir: Path):
+#     candidate_scrapers = [
+#         scrapper_hugo.ScrapperHugo,
+#         scrapper_jupyterbook.ScrapperJupyterBook
+#     ]
+
+#     scrapper = None
+
+#     for candidate in candidate_scrapers:
+#         try:
+#             scrapper = candidate(root_dir, [".html"])
+#             scrapper.do_walk()
+#             break
+#         except ParseWrongGeneratorType:
+#             pass
+
+#     return scrapper
+
+
 class ParseSkipFile(ValueError):
     """
     Used to indicate when an individual file should be skipped and not included in the index.
@@ -108,8 +113,9 @@ class Scrapper(ABC):
         self.root_dir = root_dir
         self.allowed_extensions = allowed_extensions
         self.exclude_dirs = [".git", "_static"]
+        self.extracted_data = None
 
-    def do_walk(self):
+    def do_walk(self) -> pd.DataFrame:
         df = pd.DataFrame(
             columns=["url", "id", "title", "is_public", "body", "summary", "author"]
         )
@@ -132,7 +138,8 @@ class Scrapper(ABC):
                         ic("skipped file", fname)
                         pass
 
-        return df
+        self.extracted_data = df
+        return self.extracted_data
 
     def _scrape_file(self, fname: Path) -> pd.Series:
         with open(fname) as fp:

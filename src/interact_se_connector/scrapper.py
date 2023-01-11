@@ -12,6 +12,7 @@ Striping out common words
 https://stackoverflow.com/questions/9953619/technique-to-remove-common-wordsand-their-plural-versions-from-a-string
 """
 
+
 def strip_internal_anchors(soup: Tag, class_name: str) -> Tag:
 
     for anchor_tags in soup.find_all("a", attrs={"class": class_name}):
@@ -73,25 +74,6 @@ def reject_redirect_files(soup: Tag) -> None:
         raise ParseSkipFile()
 
 
-# def find_suitable_scrapper(root_dir: Path):
-#     candidate_scrapers = [
-#         scrapper_hugo.ScrapperHugo,
-#         scrapper_jupyterbook.ScrapperJupyterBook
-#     ]
-
-#     scrapper = None
-
-#     for candidate in candidate_scrapers:
-#         try:
-#             scrapper = candidate(root_dir, [".html"])
-#             scrapper.do_walk()
-#             break
-#         except ParseWrongGeneratorType:
-#             pass
-
-#     return scrapper
-
-
 class ParseSkipFile(ValueError):
     """
     Used to indicate when an individual file should be skipped and not included in the index.
@@ -120,6 +102,8 @@ class Scrapper(ABC):
             columns=["url", "id", "title", "is_public", "body", "summary", "author"]
         )
 
+        found_file = False
+
         for root, dirs, files in os.walk(self.root_dir, topdown=True):
 
             for exc_dir in self.exclude_dirs:
@@ -131,6 +115,7 @@ class Scrapper(ABC):
                 fname = Path(root, file_name).resolve()
 
                 if fname.suffix in self.allowed_extensions:
+                    found_file = True
                     try:
                         new_row = self._scrape_file(fname)
                         df = pd.concat([df, new_row.to_frame().T], ignore_index=True)
@@ -138,12 +123,16 @@ class Scrapper(ABC):
                         ic("skipped file", fname)
                         pass
 
+        if not found_file:
+            raise ParseWrongGeneratorType(
+                f"The Scraper {self.static_site_generator_name} could not find any relevant files in the directory {self.root_dir}"
+            )
+
         self.extracted_data = df
         return self.extracted_data
 
     def _scrape_file(self, fname: Path) -> pd.Series:
-        with open(fname) as fp:
-            soup = BeautifulSoup(fp, features="html5lib")
+        soup = self.get_initial_soup(fname)
 
         # Perform any
         soup = self.pre_parse(soup)
@@ -158,12 +147,13 @@ class Scrapper(ABC):
         try:
             return pd.Series(
                 {
-                    "url": self.get_url(soup),
-                    "id": "{id}soup",
-                    "title": self.get_title(soup),
+                    "url": self.get_url(soup, fname),
+                    "id": self.get_page_id(soup),
+                    "title": self.get_title(soup, fname),
                     "is_public": self.get_is_public(soup),
                     "body": self.get_body(soup),
                     "summary": self.get_summary(soup),
+                    "keywords": self.get_keywords(soup),
                     "author": self.get_author(soup),
                 }
             )
@@ -175,6 +165,13 @@ class Scrapper(ABC):
     def static_site_generator_name(self):
         return self.__class__.__name__
 
+    # @abstractmethod
+    def get_initial_soup(self, fname: Path) -> Tag:
+        with open(fname) as fp:
+            soup = BeautifulSoup(fp, features="html5lib")
+
+        return soup
+
     @abstractmethod
     def pre_parse(self, soup: Tag) -> Tag:
         reject_redirect_files(soup)
@@ -185,7 +182,7 @@ class Scrapper(ABC):
         pass
 
     @abstractmethod
-    def get_url(self, soup: Tag) -> str:
+    def get_url(self, soup: Tag, fname: Path) -> str:
         pass
 
     @abstractmethod
@@ -201,7 +198,7 @@ class Scrapper(ABC):
         pass
 
     @abstractmethod
-    def get_title(self, soup: Tag) -> str:
+    def get_title(self, soup: Tag, fname: Path) -> str:
         pass
 
     @abstractmethod

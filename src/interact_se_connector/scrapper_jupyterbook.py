@@ -15,10 +15,10 @@ from icecream import ic
 
 
 class ScrapperJupyterBook(Scrapper):
-    def __init__(self, root_dir: Path, allowed_extensions: List[str]):
+    def __init__(self, root_dir: Path):
         self.author = ""
         self.is_public = True
-        super().__init__(root_dir, allowed_extensions)
+        super().__init__(root_dir, [".html"])
 
     def pre_parse(self, soup: Tag) -> Tag:
         body = strip_internal_anchors(soup, "headerlink")
@@ -40,7 +40,7 @@ class ScrapperJupyterBook(Scrapper):
         )
         return bool(signature)
 
-    def get_url(self, soup: Tag) -> str:
+    def get_url(self, soup: Tag, fname: Path) -> str:
         url = soup.find("link", attrs={"rel": "canonical"})
         # for url in urls:
         #     ic(url)
@@ -58,11 +58,11 @@ class ScrapperJupyterBook(Scrapper):
         return strip_formatting(body)
 
     def get_keywords(self, soup: Tag) -> str:
-        body = soup.find("article", attrs={"class": "markdown"})
+        body = soup.find("main", attrs={"id": "main-content", "role": "main"})
         # body = strip_internal_anchors(body, "anchor")
         return " ".join(get_keywords_from_headings(body))
 
-    def get_title(self, soup: Tag) -> str:
+    def get_title(self, soup: Tag, fname: Path) -> str:
         # The least worst option to do this in a single line seems to be to get the title from the currently highlight entry in the
         # ```
         # title = soup.find("a", attrs={"class": "current reference internal"})

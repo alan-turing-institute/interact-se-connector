@@ -14,8 +14,7 @@ from interact_se_connector.connector import find_suitable_scrapper
 
 from interact_se_connector.scrapper_hugo import ScrapperHugo
 from interact_se_connector.scrapper_jupyterbook import ScrapperJupyterBook
-
-# @mark.skip()
+from interact_se_connector.scrapper_grubermarkdown import ScrapperGruberMarkdown
 
 
 @mark.parametrize(
@@ -23,11 +22,12 @@ from interact_se_connector.scrapper_jupyterbook import ScrapperJupyterBook
     [
         (Path(__file__, "..", "hugo").resolve(), ScrapperHugo),
         (Path(__file__, "..", "jupyterbook").resolve(), ScrapperJupyterBook),
+        (Path(__file__, "..", "markdown").resolve(), ScrapperGruberMarkdown),
         (Path(__file__, "..", "unsupported").resolve(), NoneType),
+        (Path(__file__, "..", "empty").resolve(), NoneType),
     ],
 )
 def test_pick_scrapper(test_dir, expected_type):
-    # test_dir = Path(__file__, "..", "hugo").resolve()
     ic(test_dir)
 
     scrapper = find_suitable_scrapper(test_dir)
@@ -35,15 +35,12 @@ def test_pick_scrapper(test_dir, expected_type):
     actual_type = type(scrapper)
     assert actual_type == expected_type
 
-    # assert False
-
 
 def test_do_walk():
 
     # Run Hugo example
     test_dir = Path("/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs")
-    allowed_extensions = [".html"]
-    hugo_scrapper = ScrapperHugo(test_dir, allowed_extensions)
+    hugo_scrapper = ScrapperHugo(test_dir)
     result = hugo_scrapper.do_walk()
     result.to_csv("test_hugo_output.csv")
 
@@ -51,10 +48,17 @@ def test_do_walk():
     test_dir = Path(
         "/Users/a.smith/code/knowledgemanagement/the-turing-way/book/website/_build/html"
     )
-    allowed_extensions = [".html"]
-    jb_scrapper = ScrapperJupyterBook(test_dir, allowed_extensions)
+    jb_scrapper = ScrapperJupyterBook(test_dir)
     result = jb_scrapper.do_walk()
     result.to_csv("test_jupyter_output.csv")
+
+    # Run GitHub wiki example
+    test_dir = Path(
+        "/Users/a.smith/code/knowledgemanagement/research-engineering-group.wiki"
+    )
+    gmd_scrapper = ScrapperGruberMarkdown(test_dir)
+    result = gmd_scrapper.do_walk()
+    result.to_csv("test_gh_wiki_output.csv")
 
     assert False
 

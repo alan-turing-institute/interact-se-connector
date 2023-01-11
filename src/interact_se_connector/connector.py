@@ -3,10 +3,12 @@ import pandas as pd
 import requests
 from interact_se_connector.scrapper_hugo import ScrapperHugo
 from interact_se_connector.scrapper_jupyterbook import ScrapperJupyterBook
+from interact_se_connector.scrapper_grubermarkdown import ScrapperGruberMarkdown
 from interact_se_connector.scrapper import ParseWrongGeneratorType
 from icecream import ic
 import json
 from urllib.parse import urljoin
+
 
 def find_suitable_scrapper(root_dir: Path):
     """
@@ -14,6 +16,7 @@ def find_suitable_scrapper(root_dir: Path):
     trying to solve circular imports.
     """
     candidate_scrapers = [
+        ScrapperGruberMarkdown,
         ScrapperJupyterBook,
         ScrapperHugo,
     ]
@@ -22,7 +25,7 @@ def find_suitable_scrapper(root_dir: Path):
 
     for candidate in candidate_scrapers:
         try:
-            scrapper = candidate(root_dir, [".html"])
+            scrapper = candidate(root_dir)
             scrapper.do_walk()
             break
         except ParseWrongGeneratorType:
@@ -47,15 +50,15 @@ class InteractConnection:
     # Create records
     # Delete records
     """
+
     def __init__(self, display_url, api_key, search_app_id: int) -> None:
         self.display_url = display_url
-        self.common_headers = {
-            'X-ApiKey': api_key,
-            "Accept": "application/json"
-        }
+        self.common_headers = {"X-ApiKey": api_key, "Accept": "application/json"}
 
         self._get_api_details()
-        self.search_app_url = urljoin(self.api_url, f"/api/searchapp/{search_app_id}/document")
+        self.search_app_url = urljoin(
+            self.api_url, f"/api/searchapp/{search_app_id}/document"
+        )
 
     def _get_api_details(self):
         """
@@ -67,12 +70,10 @@ class InteractConnection:
         response.raise_for_status()
         tenant_info = response.json()
         ic(tenant_info)
-        
+
         self.api_url = tenant_info.get("ApiDomain")
 
-        self.common_headers.update(
-          {"X-Tenant": tenant_info.get("TenantGuid")}
-        )
+        self.common_headers.update({"X-Tenant": tenant_info.get("TenantGuid")})
 
     def get_all_current_docs(self):
         """
@@ -89,8 +90,8 @@ class InteractConnection:
         requests.delete('https://httpbin.org/delete')
         """
         response = requests.delete(
-          url=urljoin(self.search_app_url, doc_id),
-          headers=self.common_headers,
+            url=urljoin(self.search_app_url, doc_id),
+            headers=self.common_headers,
         )
         response.raise_for_status()
 
@@ -120,20 +121,18 @@ class InteractConnection:
             # print(row_as_json)
 
             row_as_dict = {
-              "Url": row.url,
-              "Id": row.id,
-              "Title": row.title,
-              "IsPublic": row.is_public,
-              "Body": row.body,
-              "summary": row.summary,
-              "Author": row.author,
+                "Url": row.url,
+                "Id": row.id,
+                "Title": row.title,
+                "IsPublic": row.is_public,
+                "Body": row.body,
+                "summary": row.summary,
+                "Author": row.author,
             }
             print(row_as_dict)
             self.upload_single_file(row_as_dict)
 
             # json.dumps(ro)
-
-
 
     def upload_single_file(self, row_as_dict):
         """
@@ -145,8 +144,6 @@ class InteractConnection:
           -Body $fileJSON
         """
         response = requests.put(
-          url=self.search_app_url,
-          headers=self.common_headers,
-          json=row_as_dict
+            url=self.search_app_url, headers=self.common_headers, json=row_as_dict
         )
         response.raise_for_status()

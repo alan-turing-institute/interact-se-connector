@@ -9,10 +9,10 @@ import re
 
 
 class ScrapperHugo(scrapper.Scrapper):
-    def __init__(self, root_dir: Path, allowed_extensions: List[str]):
+    def __init__(self, root_dir: Path):
         self.author = ""
         self.is_public = True
-        super().__init__(root_dir, allowed_extensions)
+        super().__init__(root_dir, [".html"])
 
     def pre_parse(self, soup: Tag) -> Tag:
         body = scrapper.strip_internal_anchors(soup, "anchor")
@@ -24,7 +24,7 @@ class ScrapperHugo(scrapper.Scrapper):
         )
         return bool(signature)
 
-    def get_url(self, soup: Tag) -> str:
+    def get_url(self, soup: Tag, fname: Path) -> str:
         url = soup.find("meta", attrs={"property": "og:url"})
         return url.attrs.get("content", None)
 
@@ -41,7 +41,7 @@ class ScrapperHugo(scrapper.Scrapper):
         # body = strip_internal_anchors(body, "anchor")
         return " ".join(scrapper.get_keywords_from_headings(body))
 
-    def get_title(self, soup: Tag) -> str:
+    def get_title(self, soup: Tag, fname: Path) -> str:
         title = soup.find("meta", attrs={"property": "og:title"})
         return title.attrs.get("content", None)
 

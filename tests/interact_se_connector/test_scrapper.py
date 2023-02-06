@@ -38,11 +38,13 @@ def test_pick_scrapper(test_dir, expected_type):
 
 def test_do_walk():
 
+    output_dir = Path(__file__).parent / "output"
+
     # Run Hugo example
     test_dir = Path("/Users/a.smith/code/knowledgemanagement/REG-handbook/public/docs")
     hugo_scrapper = ScrapperHugo(test_dir)
     result = hugo_scrapper.do_walk()
-    result.to_csv("test_hugo_output.csv")
+    result.to_csv(f"{output_dir}/test_hugo_output.csv")
 
     # Run JupyterBook example
     test_dir = Path(
@@ -50,7 +52,7 @@ def test_do_walk():
     )
     jb_scrapper = ScrapperJupyterBook(test_dir)
     result = jb_scrapper.do_walk()
-    result.to_csv("test_jupyter_output.csv")
+    result.to_csv(f"{output_dir}/test_jupyter_output.csv")
 
     # Run GitHub wiki example
     test_dir = Path(
@@ -58,7 +60,7 @@ def test_do_walk():
     )
     gmd_scrapper = ScrapperGruberMarkdown(test_dir)
     result = gmd_scrapper.do_walk()
-    result.to_csv("test_gh_wiki_output.csv")
+    result.to_csv(f"{output_dir}/test_gh_wiki_output.csv")
 
     assert False
 

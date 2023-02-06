@@ -5,6 +5,33 @@ The Interact Search Engine Connector (isec) updates the search index for [Intera
 ** This has been developed independently from Interact and is not supported by them. **
 
 
+## Todo
+
+- [x] setup.py / pyproject.toml
+- [ ] Local pyenv
+- [x] Check whether args are passed with '-' or '_'
+- [ ] Option to represent the base page URL if it is not available from html header
+- [x] Option to derive base page URL from git repo (catch case where there is multiple repos).
+- [ ] Create Dockerfile
+- [ ] Publish as GitHub Action
+- [ ] Unit tests on CI
+- [ ] Publish to PyPI
+- [ ] Solve how to delete old/stale page index entries
+- [ ] Testing
+- [ ] Docs + Docstring
+- [x] Linting
+- [ ] Typing
+- [x] Link CLI to main methods
+- [ ] Force option
+- [ ] Dry-run option
+- [ ] Add Author option
+- [ ] Add summary option
+- [ ] Add is_public option
+- [ ] Add security page access options
+- [ ] Meaningful error codes
+- [ ] Filter by doc_id prefix
+- [ ] Test `test_do_walk` is too slow. Need to make this run on subsample, not entire source books.
+
 ## Useful reference docs
 
 https://developer.interactsoftware.com/docs/enterprise-search

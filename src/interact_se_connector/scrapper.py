@@ -14,7 +14,6 @@ https://stackoverflow.com/questions/9953619/technique-to-remove-common-wordsand-
 
 
 def strip_internal_anchors(soup: Tag, class_name: str) -> Tag:
-
     for anchor_tags in soup.find_all("a", attrs={"class": class_name}):
         anchor_tags.decompose()
 
@@ -56,7 +55,6 @@ def strip_formatting(soup: Tag) -> str:
 
 
 def get_keywords_from_headings(soup: Tag) -> MutableSet[str]:
-
     result_keywords = set()
 
     headers = soup.find_all(re.compile("^h\d"))
@@ -105,7 +103,6 @@ class Scrapper(ABC):
         found_file = False
 
         for root, dirs, files in os.walk(self.root_dir, topdown=True):
-
             for exc_dir in self.exclude_dirs:
                 if exc_dir in dirs:
                     dirs.remove(exc_dir)

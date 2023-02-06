@@ -2,18 +2,28 @@ from pathlib import Path
 from typing import List
 
 import interact_se_connector.scrapper as scrapper
+import interact_se_connector.git_helper as git_helper
 
 from bs4 import Tag, BeautifulSoup
 from icecream import ic
 import markdown
 from markdown.extensions.tables import TableExtension
+from urllib.parse import urljoin
+from git.exc import InvalidGitRepositoryError
 
 
 class ScrapperGruberMarkdown(scrapper.Scrapper):
     def __init__(self, root_dir: Path):
         self.author = ""
         self.is_public = False
-        self.base_url = None
+
+        # Attempt to work out base url from git repo
+        try:
+            remote_git_url = git_helper.get_remote_url(root_dir)
+            self.base_url = git_helper.get_base_from_remote_url(remote_git_url)
+        except InvalidGitRepositoryError:
+            raise scrapper.ParseWrongGeneratorType
+
         self.md_reader = markdown.Markdown(extensions=[TableExtension()])
         super().__init__(root_dir, [".md"])
 
@@ -38,7 +48,8 @@ class ScrapperGruberMarkdown(scrapper.Scrapper):
         return True
 
     def get_url(self, soup: Tag, fname: Path) -> str:
-        return "wrong"
+        rel_path = fname.relative_to(self.root_dir).stem
+        return urljoin(self.base_url, str(rel_path))
 
     def get_page_id(self, soup: Tag) -> str:
         pass

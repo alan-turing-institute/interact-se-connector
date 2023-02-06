@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 tests/test_static_sites/hugo/
 tests/test_static_sites/jupyterbook/
+test_gh_wiki_output.csv

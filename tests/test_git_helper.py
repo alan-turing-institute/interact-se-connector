@@ -4,6 +4,7 @@ from icecream import ic
 from pathlib import Path
 from git.exc import InvalidGitRepositoryError
 
+
 def test_get_remote_url_not_a_git_repo(tmp_path):
     with pytest.raises(InvalidGitRepositoryError):
         git_helper.get_remote_url(tmp_path)
@@ -11,9 +12,13 @@ def test_get_remote_url_not_a_git_repo(tmp_path):
 
 def test_get_remote_url():
     root_dir = (Path(__file__) / ".." / "..").resolve()
-    expected_remote = "https://github.com/andrewphilipsmith/interact-se-connector.git"
 
     actual_remote = git_helper.get_remote_url(root_dir)
+
+    remote_type = git_helper.get_remote_url_type(actual_remote)
+    remote_base = "alan-turing-institute/interact-se-connector.git"
+
+    expected_remote = git_helper.build_ssh_https_url(remote_base, remote_type)
 
     assert actual_remote == expected_remote
 
